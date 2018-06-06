@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>HtmlGenerator</AssemblyName>
+    <TargetFramework>net461</TargetFramework>
+    <RootNamespace>Microsoft.SourceBrowser.HtmlGenerator</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuSpecFile>$(MSBuildProjectDirectory)\Microsoft.SourceBrowser.nuspec</NuSpecFile>
+    <NuGetVersion>1.0.17</NuGetVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <NuGetInput Include="$(MSBuildThisFile)" />
+    <NuGetInput Include="$(NuSpecFile)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web\index\AffiliateLinks.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TypeScriptSupport\analyzer.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TypeScriptSupport\lib.d.ts">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ExceptionAnalysis.Diagnostics" Version="1.0.0.39796" />
+    <PackageReference Include="ManagedEsent" Version="1.9.4" />
+    <PackageReference Include="Microsoft.Build" Version="15.6.82" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.6.82" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.7-preview-ge60d679b53" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.6.82" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.6.82" ExcludeAssets="runtime" />
+    <!-- Temporarily use latest beta Roslyn packages until 2.9.0 is released on https://nuget.org. -->
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="2.9.0-beta4-62819-06" />
+    <PackageReference Include="Microsoft.Language.Xml" Version="1.1.20" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="15.6.27413" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuildLogParser\BuildLogParser.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MEF\MEF.csproj">
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <Target Name="PublishWebsite" AfterTargets="CoreBuild" BeforeTargets="BuildNuGet">
+    <MSBuild Targets="Publish" Projects="$(MSBuildThisFileDirectory)..\SourceIndexServer\SourceIndexServer.csproj" Properties="PublishDir=$(TargetDir)\Web;Configuration=Release" RemoveProperties="TargetFramework" />
+  </Target>
+  <Target Name="BuildNuGet" AfterTargets="CoreBuild" Condition="Exists('$(NuSpecFile)')" DependsOnTargets="CopyFilesToOutputDirectory" Inputs="@(NuGetInput)" Outputs="$(OutDir)\Microsoft.SourceBrowser.$(NuGetVersion).nupkg">
+    <Exec Command="&quot;$(SolutionDir)\.nuget\NuGet.exe&quot; Pack Microsoft.SourceBrowser.nuspec -NoPackageAnalysis -BasePath &quot;$(OutDir.TrimEnd('\'))&quot; -OutputDirectory &quot;$(OutDir.TrimEnd('\'))&quot; -prop currentVersion=$(NuGetVersion)" />
+  </Target>
+</Project>
