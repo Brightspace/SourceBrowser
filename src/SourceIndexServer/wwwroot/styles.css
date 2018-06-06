@@ -1,12 +1,18 @@
-﻿body {
+html{
+    background-color: #1E1E1E;
+    color: #DCDCDC;
+}
+body {
     font-family: Segoe UI, Tahoma, Helvetica, sans-serif;
     cursor: text;
     margin: 0px;
     padding: 0px;
+
 }
 
 .body, p, ul, ol, h1, h2, h3 {
     margin: 20px;
+
 }
 
 h1 {
@@ -25,13 +31,13 @@ pre {
 }
 
     pre a:focus {
-        color: inherit;
-        background-color: lime;
+        color: #DCDCDC;
+        background-color: #0E4583;
     }
 
     pre b {
         font-weight: normal;
-        color: blue;
+        color: #569CD6;
     }
 
 a:link {
@@ -92,7 +98,7 @@ tr td.ex {
 .note {
     margin: 8px;
     padding: 8px;
-    background-color: lightyellow;
+    background-color: #2E2E2E;
     border-color: khaki;
 }
 
@@ -121,7 +127,8 @@ tr td.ex {
     cursor: pointer;
     padding: 6px 6px 6px 28px;
     margin-top: 16px;
-    background-color: #e7f5ff;
+    background-color: #333;
+    color: #DCDCDC;
     background-image: url('content/icons/minus.png');
     background-attachment: local;
     background-repeat: no-repeat;
@@ -130,7 +137,7 @@ tr td.ex {
 }
 
     .resultGroupHeader:hover {
-        background-color: #d4edff;
+        background-color: #555;
     }
 
 .resultGroupAssemblyName {
@@ -141,7 +148,8 @@ tr td.ex {
 .rA {
     font-size: larger;
     font-weight: bold;
-    background-color: #e7f5ff;
+    background-color: #333;
+    color: #DCDCDC;
     background-image: url('content/icons/minus.png');
     background-attachment: local;
     background-repeat: no-repeat;
@@ -152,7 +160,7 @@ tr td.ex {
 }
 
     .rA:hover {
-        background-color: #d4edff;
+        background-color: #555;
     }
 
 .resultGroupProjectPath {
@@ -172,7 +180,8 @@ tr td.ex {
 }
 
     .rL:hover, .referenceLine:hover {
-        background-color: #eeeeee;
+        background-color: #0E4583;
+        color: #DCDCDC;
     }
 
 .rx, .referenceLineText {
@@ -186,7 +195,8 @@ a b {
 }
 
 a i {
-    background-color: yellow;
+    background-color: #0E4583;
+    color: #DCDCDC;
     font-style: normal;
 }
 
@@ -195,12 +205,13 @@ a i {
 }
 
 .rO, .referenceOccurrence {
-    background-color: yellow;
+    background-color: #0E4583;
+    color: #DCDCDC;
 }
 
 .rN, .resultGroupFileName {
-    background-color: #f6f6f6;
-    color: gray;
+    background-color: #232323;
+    color: #DCDCDC;
     padding: 4px 4px 4px 30px;
     background-attachment: local;
     background-repeat: no-repeat;
@@ -224,7 +235,8 @@ a i {
 }
 
     .resultItem:hover {
-        background-color: #f6f6f6;
+        background-color: #0E4583;
+        color: #DCDCDC;
     }
 
 .projectExplorerBody, .namespaceExplorerBody, .solutionExplorerBody {
@@ -259,7 +271,7 @@ a i {
     background-repeat: no-repeat;
     background-position: 10px 6px;
     background-origin: border-box;
-    color: lightgray;
+    color: #888;
 }
 
 .folder {
@@ -451,20 +463,20 @@ a i {
     }
 
 .currentResult {
-    border-left-color: lightgray;
-    border-top-color: lightgray;
-    border-bottom-color: lightgray;
+    border-left-color: #555;
+    border-top-color: #555;
+    border-bottom-color: #555;
     border-left-style: solid;
     border-top-style: solid;
     border-bottom-style: solid;
     border-left-width: 1px;
     border-top-width: 1px;
     border-bottom-width: 1px;
-    background-color: #eeeeee;
+    background-color: #555;
 }
 
     .currentResult:hover {
-        background-color: #eeeeee;
+        background-color: #555;
     }
 
 .resultLine {
@@ -472,7 +484,7 @@ a i {
 
 .resultKind {
     display: inline;
-    color: blue;
+    color: #569CD6;
     margin-left: 5px;
     margin-right: 5px;
 }
@@ -491,7 +503,7 @@ a i {
 .rH {
     margin-right: 0px;
     padding: 8px;
-    background-color: #68217A;
+    background-color: #2E2E2E;
     color: white;
 }
 
@@ -513,6 +525,7 @@ a i {
     color: #2b91af;
     text-align: right;
     vertical-align: top;
+    background-color: #1E1E1E;
 }
 
 #code {
@@ -525,7 +538,7 @@ a i {
     position: fixed;
     width: 100%;
     bottom: 0;
-    background-color: aliceblue;
+    background-color: #2E2E2E;
     padding: 8px;
     color: gray;
     height: 50px;
@@ -533,7 +546,7 @@ a i {
 }
 
 .headerBody {
-    background-color: #68217A;
+    background-color: #2E2E2E;
     margin: 0px;
     padding: 0px;
     border-width: 0px;
@@ -574,20 +587,20 @@ a i {
 }
 
 #logoText {
-    background-image: url(content/icons/microsoftlogo.png);
+    background-image: url(content/icons/d2licon.png);
     background-repeat: no-repeat;
-    background-position: 0px 22px;
+    background-position: 0px 8px;
     background-clip: border-box;
     color: white;
     font-size: 20px;
     margin-left: 16px;
     margin-top: 0px;
-    margin-right: 0px;
+    margin-right: 0;
     margin-bottom: 0px;
     padding-top: 14px;
-    padding-bottom: 2px;
-    padding-left: 95px;
-    padding-right: 0px;
+    padding-bottom: 9px;
+    padding-left: 180px;
+    padding-right: 0;
     vertical-align: top;
     display: inline-block;
 }
@@ -667,16 +680,12 @@ a i {
 
 .r {
     border-width: 1px;
-    border-color: ivory;
+    border-color: #1E1E1E;
     border-style: solid;
 }
 
-.unknownClassification {
-    color: hotpink;
-}
-
 .k, a.k {
-    color: blue;
+    color: #569CD6;
 }
 
     a.k, a.k:hover {
@@ -684,12 +693,32 @@ a i {
     }
 
 .t, a.t,
-.l, .lineNumber {
-    color: #2b91af;
+.l, .lineNumber, .n {
+    color: #ADD8E6;
+}
+
+.constructor {
+    color: #ADD8E6 !important; 
+}
+
+.preprocess {
+    color: #9B9B9B !important;
+}
+
+.field {
+    color: #EE82EE !important;
+}
+
+.property {
+    color: #EE82EE !important;
+}
+
+.method {
+    color: #00FFFF !important;
 }
 
 .c {
-    color: #008000;
+    color: #4D8E40;
 }
 
 .x, .e {
@@ -697,7 +726,7 @@ a i {
 }
 
 .s {
-    color: #a31515;
+    color: #D69D85;
 }
 
 .xd {
@@ -766,7 +795,7 @@ a i {
 }
 
 a.s, a.s:hover {
-    color: #a31515;
+    color: #D69D85;
     text-decoration: underline;
 }
 
@@ -775,17 +804,17 @@ ul a, ul a:link, ul a:hover, ul a:focus, ul a:active,
 ol a, ol a:link, ol a:hover, ol a:focus, ol a:active,
 .blueLink, .blueLink:link, .blueLink:hover, .blueLink:focus, .blueLink:active {
     text-decoration: underline;
-    color: blue;
+    color: #569CD6;
 }
 
     p a:visited,
     ul a:visited,
     .blueLink:visited {
-        color: blue;
+        color: #569CD6;
     }
 
 .partialTypeLink {
-    color: blue;
+    color: #569CD6;
     padding-top: 8px;
     padding-bottom: 8px;
     margin-left: 32px;
@@ -865,11 +894,11 @@ ol a, ol a:link, ol a:hover, ol a:focus, ol a:active,
 .tabChannel {
     margin: 0px;
     padding: 0px;
-    background-color: #68217A;
+    background-color: #2E2E2E;
 }
 
 .activeTab {
-    background-color: white;
+    background-color: #444;
     padding-left: 16px;
     padding-top: 6px;
     padding-right: 16px;
@@ -878,7 +907,7 @@ ol a, ol a:link, ol a:hover, ol a:focus, ol a:active,
 }
 
 .inactiveTab {
-    background-color: #68217A;
+    background-color: #2E2E2E;
     color: white;
     padding-left: 16px;
     padding-top: 6px;
@@ -897,6 +926,7 @@ ol a, ol a:link, ol a:hover, ol a:focus, ol a:active,
     margin-top: 6px;
     margin-right: 14px;
     margin-bottom: -1px;
+    color: #333;
 }
 
 .imageFolder {
