@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.SourceBrowser.Common;
+using Microsoft.SourceBrowser.HtmlGenerator.Utilities;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -279,7 +280,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
         public static string CurrentAssemblyName = null;
 
         /// <returns>true if only part of the solution was processed and the method needs to be called again, false if all done</returns>
-        public bool Generate(HashSet<string> processedAssemblyList = null, Folder<Project> solutionExplorerRoot = null)
+        public bool Generate(HashSet<string> processedAssemblyList = null, Folder<ProjectData> solutionExplorerRoot = null)
         {
             if (solution == null)
             {
@@ -299,12 +300,13 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                 .ToArray();
             var currentBatch = projectsToProcess
                 .ToArray();
-            foreach (var project in currentBatch)
+			List<ProjectData> currentBatchOfProjectData = new List<ProjectData>();
+			foreach (var project in currentBatch)
             {
                 try
                 {
                     CurrentAssemblyName = project.AssemblyName;
-
+					currentBatchOfProjectData.Add( new ProjectData(project.Name, project.AssemblyName, project.FilePath) );
                     var generator = new ProjectGenerator(this, project);
                     generator.Generate().GetAwaiter().GetResult();
 
@@ -324,7 +326,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
 
             AddProjectsToSolutionExplorer(
                 solutionExplorerRoot,
-                currentBatch);
+				currentBatchOfProjectData );
 
             return currentBatch.Length < projectsToProcess.Length;
         }
