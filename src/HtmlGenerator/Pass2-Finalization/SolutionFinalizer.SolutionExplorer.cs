@@ -2,7 +2,8 @@
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.SourceBrowser.Common;
-using Folder = Microsoft.SourceBrowser.HtmlGenerator.Folder<Microsoft.CodeAnalysis.Project>;
+using Microsoft.SourceBrowser.HtmlGenerator.Utilities;
+using Folder = Microsoft.SourceBrowser.HtmlGenerator.Folder<Microsoft.SourceBrowser.HtmlGenerator.Utilities.ProjectData>;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -26,7 +27,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             }
         }
 
-        private void Sort(Folder<Project> root, Comparison<string> customRootSorter = null)
+        private void Sort(Folder<ProjectData> root, Comparison<string> customRootSorter = null)
         {
             if (Configuration.FlattenSolutionExplorer)
             {

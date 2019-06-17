@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.SourceBrowser.Common;
+using Microsoft.SourceBrowser.HtmlGenerator.Utilities;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -88,7 +89,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             }
         }
 
-        public void FinalizeProjects(bool emitAssemblyList, Federation federation, Folder<Project> solutionExplorerRoot = null)
+        public void FinalizeProjects(bool emitAssemblyList, Federation federation, Folder<ProjectData> solutionExplorerRoot = null)
         {
             SortProcessedAssemblies();
             WriteSolutionExplorer(solutionExplorerRoot);

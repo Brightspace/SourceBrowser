@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
-using Folder = Microsoft.SourceBrowser.HtmlGenerator.Folder<Microsoft.CodeAnalysis.Project>;
+using Microsoft.SourceBrowser.HtmlGenerator.Utilities;
+using Folder = Microsoft.SourceBrowser.HtmlGenerator.Folder<Microsoft.SourceBrowser.HtmlGenerator.Utilities.ProjectData>;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
     partial class SolutionGenerator
     {
-        public void AddProjectsToSolutionExplorer(Folder root, IEnumerable<Project> projects)
+        public void AddProjectsToSolutionExplorer(Folder root, IEnumerable<ProjectData> projects)
         {
             Dictionary<string, IEnumerable<string>> projectToSolutionFolderMap = null;
             if (!Configuration.FlattenSolutionExplorer)
@@ -30,7 +31,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             }
         }
 
-        private void AddProjectToFolder(Folder root, Project project, Dictionary<string, IEnumerable<string>> projectToSolutionFolderMap)
+        private void AddProjectToFolder(Folder root, ProjectData project, Dictionary<string, IEnumerable<string>> projectToSolutionFolderMap)
         {
             var fullPath = project.FilePath;
             IEnumerable<string> folders = null;
@@ -42,7 +43,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             AddProjectToFolder(root, project, folders);
         }
 
-        private void AddProjectToFolder(Folder folder, Project project, IEnumerable<string> folders = null)
+        private void AddProjectToFolder(Folder folder, ProjectData project, IEnumerable<string> folders = null)
         {
             if (folders == null || !folders.Any())
             {

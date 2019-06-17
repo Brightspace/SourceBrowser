@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.SourceBrowser.Common;
+using Microsoft.SourceBrowser.HtmlGenerator.Utilities;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -250,7 +251,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                 + "[/assemblylist]");
         }
 
-        private static readonly Folder<Project> mergedSolutionExplorerRoot = new Folder<Project>();
+        private static readonly Folder<ProjectData> mergedSolutionExplorerRoot = new Folder<ProjectData>();
 
         private static void IndexSolutions(
             IEnumerable<string> solutionFilePaths,
