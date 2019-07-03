@@ -26,6 +26,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             var projects = new List<string>();
             var properties = new Dictionary<string, string>();
             var emitAssemblyList = false;
+            var doNotIncludeReferencedProjects = false;
             var force = false;
             var noBuiltInFederations = false;
             var offlineFederations = new Dictionary<string, string>();
@@ -99,6 +100,12 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                 if (arg == "/assemblylist")
                 {
                     emitAssemblyList = true;
+                    continue;
+                }
+
+                if (string.Equals(arg, "/donotincludereferencedprojects", StringComparison.OrdinalIgnoreCase))
+                {
+                    doNotIncludeReferencedProjects = true;
                     continue;
                 }
 
@@ -199,7 +206,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                     federation.AddFederation(entry.Key, entry.Value);
                 }
 
-                IndexSolutions(projects, properties, federation, serverPathMappings, pluginBlacklist);
+                IndexSolutions(projects, properties, federation, serverPathMappings, pluginBlacklist, doNotIncludeReferencedProjects);
                 FinalizeProjects(emitAssemblyList, federation);
                 WebsiteFinalizer.Finalize(websiteDestination, emitAssemblyList, federation);
             }
@@ -232,21 +239,27 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
 
         private static void PrintUsage()
         {
-            Console.WriteLine(@"Usage: HtmlGenerator "
-                + @"[/out:<outputdirectory>] "
-                + @"[/force] "
-                + @"[/noplugins] "
-                + @"[/noplugin:Git] "
-                + @"<pathtosolution1.csproj|vbproj|sln> [more solutions/projects..] "
-                + @"[/in:<filecontaingprojectlist>] "
-                + @"[/nobuiltinfederations] "
-                + @"[/offlinefederation:server=assemblyListFile] "
-                + @"[/assemblylist]");
+            Console.WriteLine("Usage: HtmlGenerator "
+                + "[/out:<outputdirectory>] "
+                + "[/force] "
+                + "[/noplugins] "
+                + "[/noplugin:Git] "
+                + "<pathtosolution1.csproj|vbproj|sln> [more solutions/projects..] "
+                + "[/in:<filecontaingprojectlist>] "
+                + "[/nobuiltinfederations] "
+                + "[/offlinefederation:server=assemblyListFile] "
+                + "[/assemblylist]");
         }
 
         private static readonly Folder<ProjectData> mergedSolutionExplorerRoot = new Folder<ProjectData>();
 
-        private static void IndexSolutions(IEnumerable<string> solutionFilePaths, Dictionary<string, string> properties, Federation federation, Dictionary<string, string> serverPathMappings, IEnumerable<string> pluginBlacklist)
+        private static void IndexSolutions(
+            IEnumerable<string> solutionFilePaths,
+            Dictionary<string, string> properties,
+            Federation federation,
+            Dictionary<string, string> serverPathMappings,
+            IEnumerable<string> pluginBlacklist,
+            bool doNotIncludeReferencedProjects = false)
         {
             var assemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -273,7 +286,8 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                         properties: properties.ToImmutableDictionary(),
                         federation: federation,
                         serverPathMappings: serverPathMappings,
-                        pluginBlacklist: pluginBlacklist))
+                        pluginBlacklist: pluginBlacklist,
+                        doNotIncludeReferencedProjects: doNotIncludeReferencedProjects))
                     {
                         solutionGenerator.GlobalAssemblyList = assemblyNames;
                         solutionGenerator.Generate(processedAssemblyList, mergedSolutionExplorerRoot);
@@ -318,7 +332,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             string sourcePath = Assembly.GetEntryAssembly().Location;
             sourcePath = Path.GetDirectoryName(sourcePath);
             string basePath = sourcePath;
-            sourcePath = Path.Combine(sourcePath, @"Web");
+            sourcePath = Path.Combine(sourcePath, "Web");
             if (!Directory.Exists(sourcePath))
             {
                 return;
@@ -351,8 +365,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
 
         private static string StampOverviewHtmlText(string text)
         {
-            text = text.Replace("$(Date)", DateTime.Today.ToString("MMMM d", CultureInfo.InvariantCulture));
-            return text;
+            return text.Replace("$(Date)", DateTime.Today.ToString("MMMM d", CultureInfo.InvariantCulture));
         }
 
         private static void ToggleSolutionExplorerOff(string destinationFolder)
