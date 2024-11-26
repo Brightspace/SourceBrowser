@@ -58,6 +58,14 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="16.10.230" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <!--
+        Hack to work around a breaking change introduced in the Microsoft.NET.StringTools assembly shipped
+        with MSBuild 17.10.4 where internal calls failed with this error:
+            System.TypeLoadException: Could not load type 'Microsoft.NET.StringTools.FowlerNollVo1aHash' from assembly 'Microsoft.NET.StringTools, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+        This hack forces the project to bring in the 17.10.4 version of the assembly which has this type MSBuild
+        expects instead of the 1.0.0 it normally would.
+    -->
+    <PackageReference Include="Microsoft.NET.StringTools" Version="17.10.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
