@@ -36,7 +36,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ExceptionAnalysis.Diagnostics" Version="1.0.0.39796" />
     <PackageReference Include="ManagedEsent" Version="2.0.0" />
     <PackageReference Include="Microsoft.Build" Version="$(NuGetVersionMSBuild)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(NuGetVersionMSBuild)" ExcludeAssets="runtime" />

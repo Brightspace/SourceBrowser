@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Microsoft.SourceBrowser.Common;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Xml;
-using Microsoft.SourceBrowser.Common;
-using ExceptionAnalysis.Diagnostics;
-using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -137,9 +137,9 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                         return;
                     }
 
-                    var trace = new TraceFactory().Manufacture(ex);
+                    var trace = new StackTrace( ex, fNeedFileInfo: true );
 
-                    if (trace.Select(f => f.Method.Module).Any(IgnoredModules.Contains))
+                    if (trace.GetFrames().Select(f => f.GetMethod().Module).Any(IgnoredModules.Contains))
                     {
                         return;
                     }
