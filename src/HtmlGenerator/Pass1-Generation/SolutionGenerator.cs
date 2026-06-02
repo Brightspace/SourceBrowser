@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -34,9 +36,28 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
         private Solution solution;
         private Workspace workspace;
 
-        public SolutionGenerator(
+        private SolutionGenerator(
             string solutionFilePath,
             string solutionDestinationFolder,
+            ImmutableDictionary<string, string> properties,
+            Federation federation,
+            IReadOnlyDictionary<string, string> serverPathMappings,
+            IEnumerable<string> pluginBlacklist,
+            bool includeSourceGeneratedDocuments)
+        {
+            this.SolutionSourceFolder = Path.GetDirectoryName(solutionFilePath);
+            this.SolutionDestinationFolder = solutionDestinationFolder;
+            this.ProjectFilePath = solutionFilePath;
+            ServerPathMappings = serverPathMappings;
+            this.Federation = federation ?? new Federation();
+            this.PluginBlacklist = pluginBlacklist ?? Enumerable.Empty<string>();
+            this.IncludeSourceGeneratedDocuments = includeSourceGeneratedDocuments;
+        }
+
+        public static async Task<SolutionGenerator> CreateAsync(
+            string solutionFilePath,
+            string solutionDestinationFolder,
+            CancellationToken cancellationToken,
             ImmutableDictionary<string, string> properties = null,
             Federation federation = null,
             IReadOnlyDictionary<string, string> serverPathMappings = null,
@@ -44,19 +65,23 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             bool doNotIncludeReferencedProjects = false,
             bool includeSourceGeneratedDocuments = true)
         {
-            this.SolutionSourceFolder = Path.GetDirectoryName(solutionFilePath);
-            this.SolutionDestinationFolder = solutionDestinationFolder;
-            this.ProjectFilePath = solutionFilePath;
-            ServerPathMappings = serverPathMappings;
-            this.solution = CreateSolution(solutionFilePath, properties, doNotIncludeReferencedProjects);
-            this.Federation = federation ?? new Federation();
-            this.PluginBlacklist = pluginBlacklist ?? Enumerable.Empty<string>();
-            this.IncludeSourceGeneratedDocuments = includeSourceGeneratedDocuments;
+            var solutionGenerator = new SolutionGenerator(
+                solutionFilePath,
+                solutionDestinationFolder,
+                properties,
+                federation,
+                serverPathMappings,
+                pluginBlacklist,
+                includeSourceGeneratedDocuments
+            );
+            solutionGenerator.solution = await solutionGenerator.CreateSolutionAsync(solutionFilePath, cancellationToken, properties, doNotIncludeReferencedProjects);
 
             if (LoadPlugins)
             {
-                SetupPluginAggregator();
+                solutionGenerator.SetupPluginAggregator();
             }
+
+            return solutionGenerator;
         }
 
         public static bool LoadPlugins { get; set; }
@@ -92,7 +117,8 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             string commandLineArguments,
             string outputAssemblyPath,
             string solutionSourceFolder,
-            string solutionDestinationFolder)
+            string solutionDestinationFolder,
+            bool includeSourceGeneratedDocuments)
         {
             this.ProjectFilePath = projectFilePath;
             string projectName = Path.GetFileNameWithoutExtension(projectFilePath);
@@ -100,6 +126,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                 LanguageNames.VisualBasic : LanguageNames.CSharp;
             this.SolutionSourceFolder = solutionSourceFolder;
             this.SolutionDestinationFolder = solutionDestinationFolder;
+            this.IncludeSourceGeneratedDocuments = includeSourceGeneratedDocuments;
             string projectSourceFolder = Path.GetDirectoryName(projectFilePath);
             SetupPluginAggregator();
 
@@ -155,7 +182,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             solution = DisambiguateSameNameLinkedFiles(solution);
             solution = DeduplicateProjectReferences(solution);
 
-            solution.Workspace.WorkspaceFailed += WorkspaceFailed;
+            solution.Workspace.RegisterWorkspaceFailedHandler(args => WorkspaceFailed(args, solution.Workspace));
 
             return solution;
         }
@@ -300,7 +327,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
         public static string CurrentAssemblyName = null;
 
         /// <returns>true if only part of the solution was processed and the method needs to be called again, false if all done</returns>
-        public bool Generate(HashSet<string> processedAssemblyList = null, Folder<ProjectSkeleton> solutionExplorerRoot = null)
+        public async Task<bool> GenerateAsync(CancellationToken cancellationToken, HashSet<string> processedAssemblyList = null, Folder<ProjectSkeleton> solutionExplorerRoot = null)
         {
             if (solution == null)
             {
@@ -328,7 +355,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                     CurrentAssemblyName = project.AssemblyName;
 
                     var generator = new ProjectGenerator(this, project);
-                    generator.GenerateAsync().GetAwaiter().GetResult();
+                    await generator.GenerateAsync();
 
                     File.AppendAllText(Paths.ProcessedAssemblies, project.AssemblyName + Environment.NewLine, Encoding.UTF8);
                 }
@@ -343,9 +370,10 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
 
             new TypeScriptSupport().Generate(typeScriptFiles, SolutionDestinationFolder);
 
-            AddProjectsToSolutionExplorer(
+            await AddProjectsToSolutionExplorerAsync(
                 solutionExplorerRoot,
-                currentBatch);
+                currentBatch,
+                cancellationToken);
 
             return currentBatch.Length < projectsToProcess.Length;
         }
@@ -394,7 +422,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             fieldInfo.SetValue(instance, null);
         }
 
-        public void GenerateExternalReferences(HashSet<string> assemblyList)
+        public async Task GenerateExternalReferencesAsync(HashSet<string> assemblyList, CancellationToken cancellationToken)
         {
             var externalReferences = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -417,11 +445,12 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             foreach (var externalReference in externalReferences)
             {
                 Log.Write(externalReference.Key, ConsoleColor.Magenta);
-                var solutionGenerator = new SolutionGenerator(
+                var solutionGenerator = await SolutionGenerator.CreateAsync(
                     externalReference.Value,
                     Paths.SolutionDestinationFolder,
+                    cancellationToken,
                     pluginBlacklist: PluginBlacklist);
-                solutionGenerator.Generate(assemblyList);
+                await solutionGenerator.GenerateAsync(cancellationToken, assemblyList);
             }
         }
 
@@ -447,18 +476,19 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             return Federation.GetExternalAssemblyIndex(assemblyName);
         }
 
-        private Solution CreateSolution(string solutionFilePath, ImmutableDictionary<string, string> properties = null, bool doNotIncludeReferencedProjects = false)
+        private async Task<Solution> CreateSolutionAsync(string solutionFilePath, CancellationToken cancellationToken, ImmutableDictionary<string, string> properties = null, bool doNotIncludeReferencedProjects = false)
         {
             try
             {
                 Solution solution = null;
-                if (solutionFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
+                if (solutionFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) ||
+                    solutionFilePath.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase))
                 {
                     properties = AddSolutionProperties(properties, solutionFilePath);
                     var workspace = CreateWorkspace(properties);
                     workspace.SkipUnrecognizedProjects = true;
-                    workspace.WorkspaceFailed += WorkspaceFailed;
-                    solution = workspace.OpenSolutionAsync(solutionFilePath).GetAwaiter().GetResult();
+                    workspace.RegisterWorkspaceFailedHandler(args => WorkspaceFailed(args, workspace));
+                    solution = await workspace.OpenSolutionAsync(solutionFilePath, cancellationToken: cancellationToken);
                     solution = DeduplicateProjectReferences(solution);
                     this.workspace = workspace;
                 }
@@ -467,8 +497,8 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                     solutionFilePath.EndsWith(".vbproj", StringComparison.OrdinalIgnoreCase))
                 {
                     var workspace = CreateWorkspace(properties);
-                    workspace.WorkspaceFailed += WorkspaceFailed;
-                    solution = workspace.OpenProjectAsync(solutionFilePath).GetAwaiter().GetResult().Solution;
+                    workspace.RegisterWorkspaceFailedHandler(args => WorkspaceFailed(args, workspace));
+                    solution = (await workspace.OpenProjectAsync(solutionFilePath, cancellationToken: cancellationToken)).Solution;
                     solution = DeduplicateProjectReferences(solution);
                     if (doNotIncludeReferencedProjects)
                     {
@@ -486,10 +516,10 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                     solutionFilePath.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase) ||
                     solutionFilePath.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase))
                 {
-                    solution = MetadataAsSource.LoadMetadataAsSourceSolution(solutionFilePath);
+                    solution = await MetadataAsSource.LoadMetadataAsSourceSolutionAsync(solutionFilePath, cancellationToken);
                     if (solution != null)
                     {
-                        solution.Workspace.WorkspaceFailed += WorkspaceFailed;
+                        solution.Workspace.RegisterWorkspaceFailedHandler(args => WorkspaceFailed(args, solution.Workspace));
                         workspace = solution.Workspace;
                     }
                 }
@@ -515,7 +545,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
             return properties;
         }
 
-        private static void WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
+        private static void WorkspaceFailed(WorkspaceDiagnosticEventArgs e, Workspace workspace)
         {
             var message = e.Diagnostic.Message;
             if (message.StartsWith("Could not find file", StringComparison.Ordinal) || message.StartsWith("Could not find a part of the path", StringComparison.Ordinal))
@@ -533,7 +563,7 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                 return;
             }
 
-            var project = ((Workspace)sender).CurrentSolution.Projects.FirstOrDefault();
+            var project = workspace.CurrentSolution.Projects.FirstOrDefault();
             if (project != null)
             {
                 message = message + " Project: " + project.Name;

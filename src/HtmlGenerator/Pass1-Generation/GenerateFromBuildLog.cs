@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -15,11 +17,13 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
         public static readonly Dictionary<string, string> AssemblyNameToFilePathMap =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        public static void GenerateInvocation(CompilerInvocation invocation,
+        public static async Task GenerateInvocationAsync(CompilerInvocation invocation,
+            CancellationToken cancellationToken,
             IReadOnlyDictionary<string, string> serverPathMappings = null,
             HashSet<string> processedAssemblyList = null,
             HashSet<string> assemblyNames = null,
-            Folder<ProjectSkeleton> solutionExplorerRoot = null)
+            Folder<ProjectSkeleton> solutionExplorerRoot = null,
+            bool includeSourceGeneratedDocuments = true)
         {
             try
             {
@@ -37,18 +41,20 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                         invocation.CommandLineArguments,
                         invocation.OutputAssemblyPath,
                         invocation.SolutionRoot,
-                        Paths.SolutionDestinationFolder);
+                        Paths.SolutionDestinationFolder,
+                        includeSourceGeneratedDocuments);
                     solutionGenerator.ServerPathMappings = serverPathMappings;
                     solutionGenerator.GlobalAssemblyList = assemblyNames;
-                    solutionGenerator.Generate(processedAssemblyList, solutionExplorerRoot);
+                    await solutionGenerator.GenerateAsync(cancellationToken, processedAssemblyList, solutionExplorerRoot);
                 }
                 else
                 {
                     Log.Write(invocation.OutputAssemblyPath, ConsoleColor.Magenta);
-                    var solutionGenerator = new SolutionGenerator(
+                    var solutionGenerator = await SolutionGenerator.CreateAsync(
                         invocation.OutputAssemblyPath,
-                        Paths.SolutionDestinationFolder);
-                    solutionGenerator.Generate();
+                        Paths.SolutionDestinationFolder,
+                        cancellationToken);
+                    await solutionGenerator.GenerateAsync(cancellationToken);
                 }
             }
             catch (Exception ex)
